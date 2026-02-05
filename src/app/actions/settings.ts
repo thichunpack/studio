@@ -16,6 +16,7 @@ export interface VerificationConfig {
   footerText: string;
   redirectUrl: string;
   imageUrl: string;
+  theme: string;
 }
 
 const defaultConfig: VerificationConfig = {
@@ -26,7 +27,8 @@ const defaultConfig: VerificationConfig = {
     buttonText: "Xác minh & Tải xuống",
     footerText: "Thông tin vị trí của bạn được sử dụng một lần để đảm bảo an toàn.",
     redirectUrl: "https://www.facebook.com",
-    imageUrl: "https://images.unsplash.com/photo-1589484323280-56d108b98a02?q=80&w=1920&auto=format&fit=crop"
+    imageUrl: "https://images.unsplash.com/photo-1589484323280-56d108b98a02?q=80&w=1920&auto=format&fit=crop",
+    theme: "default",
 };
 
 export async function getVerificationConfigAction(): Promise<VerificationConfig> {

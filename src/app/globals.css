@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, .theme-default {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -64,6 +64,50 @@
     --border: 260 10% 20%;
     --input: 260 10% 20%;
     --ring: 285 100% 50%;
+  }
+  
+  .theme-forest {
+    --background: 220 15% 95%;
+    --foreground: 120 25% 15%;
+    --card: 220 15% 100%;
+    --card-foreground: 120 25% 15%;
+    --popover: 220 15% 100%;
+    --popover-foreground: 120 25% 15%;
+    --primary: 110 35% 45%;
+    --primary-foreground: 110 25% 95%;
+    --secondary: 110 20% 90%;
+    --secondary-foreground: 110 35% 45%;
+    --muted: 110 20% 94%;
+    --muted-foreground: 120 10% 45%;
+    --accent: 110 40% 80%;
+    --accent-foreground: 110 35% 25%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 110 20% 88%;
+    --input: 110 20% 88%;
+    --ring: 110 35% 45%;
+  }
+
+  .theme-sunset {
+    --background: 25 80% 96%;
+    --foreground: 20 50% 10%;
+    --card: 25 80% 100%;
+    --card-foreground: 20 50% 10%;
+    --popover: 25 80% 100%;
+    --popover-foreground: 20 50% 10%;
+    --primary: 15 90% 55%;
+    --primary-foreground: 20 0% 100%;
+    --secondary: 20 50% 92%;
+    --secondary-foreground: 15 90% 55%;
+    --muted: 20 50% 94%;
+    --muted-foreground: 20 20% 45%;
+    --accent: 350 90% 85%;
+    --accent-foreground: 350 60% 30%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 50% 90%;
+    --input: 20 50% 90%;
+    --ring: 15 90% 55%;
   }
 }
 

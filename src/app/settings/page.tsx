@@ -30,6 +30,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { getVerificationConfigAction, updateVerificationConfigAction, type VerificationConfig } from "@/app/actions/settings"
 import { Save } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const formSchema = z.object({
   title: z.string().min(1, "Tiêu đề là bắt buộc."),
@@ -40,6 +41,7 @@ const formSchema = z.object({
   footerText: z.string().min(1, "Văn bản chân trang là bắt buộc."),
   redirectUrl: z.string().url("Phải là một URL hợp lệ."),
   imageUrl: z.string().url("Phải là một URL hình ảnh hợp lệ."),
+  theme: z.string().min(1, "Chủ đề là bắt buộc."),
 })
 
 export default function SettingsPage() {
@@ -57,6 +59,7 @@ export default function SettingsPage() {
       footerText: "",
       redirectUrl: "",
       imageUrl: "",
+      theme: "default",
     },
   })
 
@@ -113,11 +116,35 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle>Tùy Chỉnh Giao Diện</CardTitle>
                   <CardDescription>
-                    Thay đổi văn bản và liên kết được hiển thị trên trang xác minh công khai.
+                    Thay đổi văn bản, liên kết và giao diện được hiển thị trên trang xác minh công khai.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <FormField
+                    control={form.control}
+                    name="theme"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Chủ đề màu sắc</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn một chủ đề" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="default">Mặc định</SelectItem>
+                            <SelectItem value="dark">Tối</SelectItem>
+                            <SelectItem value="forest">Rừng cây</SelectItem>
+                            <SelectItem value="sunset">Hoàng hôn</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>Chọn một bảng màu cho trang xác minh.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
