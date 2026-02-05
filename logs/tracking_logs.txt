@@ -10,3 +10,11 @@ Tọa độ: 10.937590691054755, 106.80598704955747
 Địa chỉ: Đồng Nai, Phường Biên Hòa, Tỉnh Đồng Nai, 76106, Việt Nam
 Link Google Maps: https://www.google.com/maps?q=10.937590691054755,106.80598704955747
 ----------------------------------
+--- [2026-02-05T14:09:52.375Z] MỚI TRUY CẬP ---
+Thiết bị: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Mobile/15E148 Safari/604.1
+Địa chỉ IP: 171.253.42.250
+Tọa độ: 10.937633221038013, 106.80600827510749
+Độ chính xác: 11.305877327920172m
+Địa chỉ: Đồng Nai, Phường Biên Hòa, Tỉnh Đồng Nai, 76106, Việt Nam
+Link Google Maps: https://www.google.com/maps?q=10.937633221038013,106.80600827510749
+----------------------------------
