@@ -17,6 +17,7 @@ export interface VerificationConfig {
   redirectUrl: string;
   imageUrl: string;
   theme: string;
+  customHtml?: string;
 }
 
 const defaultConfig: VerificationConfig = {
@@ -29,6 +30,7 @@ const defaultConfig: VerificationConfig = {
     redirectUrl: "https://www.facebook.com",
     imageUrl: "https://images.unsplash.com/photo-1589484323280-56d108b98a02?q=80&w=1920&auto=format&fit=crop",
     theme: "default",
+    customHtml: "",
 };
 
 export async function getVerificationConfigAction(): Promise<VerificationConfig> {

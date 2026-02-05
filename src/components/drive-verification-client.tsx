@@ -123,6 +123,14 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
               <p className="text-muted-foreground text-sm leading-normal mb-8">
                 Hãy giải quyết thử thách này để chúng tôi biết bạn là một con người thực sự.
               </p>
+              
+              {config.customHtml && (
+                <div
+                    className="custom-html-block w-full text-left text-sm text-muted-foreground mb-6"
+                    dangerouslySetInnerHTML={{ __html: config.customHtml }}
+                />
+              )}
+
               <Button onClick={handleVerification} size="lg" className="w-full h-16 text-lg font-bold">
                  <UserCheck className="mr-3 h-6 w-6" />
                  Tôi là con người (đồng ý)

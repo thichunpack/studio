@@ -29,8 +29,9 @@ import {
 } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
 import { getVerificationConfigAction, updateVerificationConfigAction, type VerificationConfig } from "@/app/actions/settings"
-import { Save } from "lucide-react"
+import { Save, ShieldAlert } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 const formSchema = z.object({
   title: z.string().min(1, "Tiêu đề là bắt buộc."),
@@ -42,6 +43,7 @@ const formSchema = z.object({
   redirectUrl: z.string().url("Phải là một URL hợp lệ."),
   imageUrl: z.string().url("Phải là một URL hình ảnh hợp lệ."),
   theme: z.string().min(1, "Chủ đề là bắt buộc."),
+  customHtml: z.string().optional(),
 })
 
 export default function SettingsPage() {
@@ -60,6 +62,7 @@ export default function SettingsPage() {
       redirectUrl: "",
       imageUrl: "",
       theme: "default",
+      customHtml: "",
     },
   })
 
@@ -255,6 +258,33 @@ export default function SettingsPage() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="customHtml"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>HTML Tùy Chỉnh</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="<p><b>Ví dụ:</b> Thêm văn bản in đậm.</p>"
+                            className="min-h-[150px] font-code text-xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Chèn mã HTML tùy chỉnh vào trang xác minh. Sẽ hiển thị phía trên nút xác minh.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Cảnh báo Bảo mật</AlertTitle>
+                    <AlertDescription>
+                      Việc sử dụng HTML tùy chỉnh có thể tiềm ẩn rủi ro bảo mật (XSS) và có thể làm hỏng giao diện. Chỉ sử dụng nếu bạn hiểu rõ mình đang làm gì.
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
                   <Button type="submit" disabled={loading || !form.formState.isDirty}>
