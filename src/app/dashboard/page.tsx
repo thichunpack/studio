@@ -1,85 +1,36 @@
+"use client"
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import * as React from "react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Users, Globe, MapPin, MapPinOff } from "lucide-react"
+import { Users, Globe, MapPin, MapPinOff, RefreshCw } from "lucide-react"
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { getDashboardStatsAction, type DashboardStats, type RecentLog } from "@/app/actions/logs";
 
-const logFile = path.join(process.cwd(), 'logs', 'tracking_logs.txt');
-
-interface RecentLog {
-  timestamp: string;
-  ip: string;
-  device: string;
-  address: string;
-  accuracy: string;
-  mapLink: string;
-  type: 'Vị trí' | 'Ảnh';
-}
-
-function parseLogEntry(entry: string): RecentLog | null {
-  const timestampMatch = entry.match(/^(.*?)\] MỚI TRUY CẬP (.*?) ---/);
-  if (!timestampMatch) return null;
-
-  const type = timestampMatch[2].includes('(Ảnh)') ? 'Ảnh' : 'Vị trí';
-
-  const getValue = (label: string): string => {
-    const match = entry.match(new RegExp(`${label}: (.*)`));
-    return match ? match[1].trim() : 'N/A';
-  };
-  
-  return {
-    timestamp: new Date(timestampMatch[1]).toLocaleString('vi-VN'),
-    ip: getValue('Địa chỉ IP'),
-    device: getValue('Thiết bị'),
-    address: getValue('Địa chỉ'),
-    accuracy: getValue('Độ chính xác'),
-    mapLink: getValue('Link Google Maps'),
-    type: type,
-  };
-}
-
-
-async function getLogStats() {
-  try {
-    const content = await fs.readFile(logFile, 'utf-8');
-    const entries = content.split('--- [').filter(e => e.trim() !== '');
-
-    const allIps = entries.map(e => {
-        const match = e.match(/Địa chỉ IP: (.*)/);
-        return match ? match[1].trim() : 'N/A';
-    }).filter(ip => ip !== 'N/A' && ip.toLowerCase() !== 'unknown');
-    const uniqueIps = new Set(allIps).size;
-    
-    const recentLogs: RecentLog[] = entries
-      .slice(-12)
-      .reverse()
-      .map(parseLogEntry)
-      .filter((log): log is RecentLog => log !== null);
-
-    return {
-      totalVisits: entries.length,
-      uniqueIps,
-      recentLogs
-    };
-
-  } catch (error) {
-    // If file does not exist or other error
-    return {
+export default function DashboardPage() {
+  const [statsData, setStatsData] = React.useState<DashboardStats>({
       totalVisits: 0,
       uniqueIps: 0,
       recentLogs: []
-    };
-  }
-}
+  });
+  const [isLoading, setIsLoading] = React.useState(true);
 
+  const fetchStats = React.useCallback(async () => {
+      const result = await getDashboardStatsAction();
+      if(result.success) {
+          setStatsData(result.data);
+      }
+      setIsLoading(false);
+  }, []);
 
-export default async function DashboardPage() {
-  const statsData = await getLogStats();
+  React.useEffect(() => {
+      fetchStats();
+      const interval = setInterval(fetchStats, 5000); // Refresh every 5 seconds
+      return () => clearInterval(interval);
+  }, [fetchStats]);
 
   const statsCards = [
       { title: "Tổng Lượt Truy Cập", value: statsData.totalVisits.toLocaleString(), icon: Users },
@@ -96,30 +47,42 @@ export default async function DashboardPage() {
         </header>
 
         <main className="flex-1 p-6">
-            <div className="grid gap-4 md:grid-cols-2">
-                {statsCards.map((stat) => (
-                    <Card key={stat.title}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                        {stat.title}
-                        </CardTitle>
-                        <stat.icon className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stat.value}</div>
-                    </CardContent>
-                    </Card>
-                ))}
-            </div>
+            {isLoading ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Tổng Lượt Truy Cập</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">IP Duy Nhất</CardTitle><Globe className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                    {statsCards.map((stat) => (
+                        <Card key={stat.title}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                            {stat.title}
+                            </CardTitle>
+                            <stat.icon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{stat.value}</div>
+                        </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
             
             <div className="mt-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Hoạt động Gần đây</CardTitle>
-                        <CardDescription>Hiển thị 12 lượt truy cập gần nhất.</CardDescription>
+                        <CardDescription>Hiển thị 12 lượt truy cập gần nhất (tự động làm mới).</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {statsData.recentLogs.length > 0 ? (
+                        {isLoading && statsData.recentLogs.length === 0 ? (
+                           <div className="text-center py-24 text-muted-foreground">
+                             <RefreshCw className="mx-auto h-8 w-8 animate-spin" />
+                             <p className="mt-4">Đang tải hoạt động...</p>
+                           </div>
+                        ) : statsData.recentLogs.length > 0 ? (
                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {statsData.recentLogs.map((log, index) => (
                               <Card key={index} className="flex flex-col text-sm shadow-sm hover:shadow-md transition-shadow">

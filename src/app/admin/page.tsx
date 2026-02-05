@@ -11,23 +11,30 @@ import { getLogContentAction, deleteLogsAction } from "@/app/actions/logs"
 import { useToast } from "@/hooks/use-toast"
 
 export default function AdminPage() {
-  const [logContent, setLogContent] = React.useState("Đang tải nhật ký...")
-  const [loading, setLoading] = React.useState(true)
+  const [logContent, setLogContent] = React.useState("")
+  const [isInitialLoading, setIsInitialLoading] = React.useState(true)
+  const [isDeleting, setIsDeleting] = React.useState(false)
   const [autoRefresh, setAutoRefresh] = React.useState(true)
   const { toast } = useToast()
 
   const fetchLogs = React.useCallback(async () => {
-    setLoading(true)
-    const content = await getLogContentAction()
-    setLogContent(content)
-    setLoading(false)
-  }, [])
+    try {
+      const content = await getLogContentAction()
+      setLogContent(content)
+    } catch (e) {
+      setLogContent("Không thể tải nhật ký.")
+    } finally {
+      if (isInitialLoading) {
+        setIsInitialLoading(false)
+      }
+    }
+  }, [isInitialLoading])
 
   React.useEffect(() => {
     fetchLogs()
     let interval: any
     if (autoRefresh) {
-      interval = setInterval(fetchLogs, 2000)
+      interval = setInterval(fetchLogs, 5000)
     }
     return () => clearInterval(interval)
   }, [fetchLogs, autoRefresh])
@@ -56,7 +63,7 @@ export default function AdminPage() {
 
   const handleDelete = async () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa tất cả nhật ký truy cập không? Hành động này không thể hoàn tác.")) {
-      setLoading(true)
+      setIsDeleting(true)
       const result = await deleteLogsAction()
       if (result.success) {
         toast({
@@ -71,7 +78,7 @@ export default function AdminPage() {
           description: result.message,
         })
       }
-      setLoading(false)
+      setIsDeleting(false)
     }
   }
 
@@ -92,15 +99,15 @@ export default function AdminPage() {
               <RefreshCw className={`h-4 w-4 ${autoRefresh ? "animate-spin" : ""}`} /> 
               {autoRefresh ? "Tự động làm mới" : "Làm mới thủ công"}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleCopy} disabled={loading || !logContent}>
+            <Button variant="outline" size="sm" onClick={handleCopy} disabled={isInitialLoading || !logContent}>
               <Copy className="h-4 w-4" />
                <span className="ml-2 hidden sm:inline">Sao chép</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload} disabled={loading || !logContent}>
+            <Button variant="outline" size="sm" onClick={handleDownload} disabled={isInitialLoading || !logContent}>
               <Download className="h-4 w-4" />
                <span className="ml-2 hidden sm:inline">Tải xuống</span>
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={loading}>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting}>
               <Trash2 className="h-4 w-4" />
                <span className="ml-2 hidden sm:inline">Xóa Nhật ký</span>
             </Button>
@@ -119,7 +126,7 @@ export default function AdminPage() {
             <CardContent>
               <ScrollArea className="h-[65vh] rounded-md border bg-muted/20 p-4 font-code">
                 <pre className="text-sm text-foreground whitespace-pre-wrap">
-                  {loading ? "Đang tải nhật ký..." : logContent}
+                  {isInitialLoading ? "Đang tải nhật ký..." : logContent}
                 </pre>
               </ScrollArea>
             </CardContent>
