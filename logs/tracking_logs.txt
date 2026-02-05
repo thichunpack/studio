@@ -14,3 +14,11 @@ Tọa độ: 10.9509066, 106.8181135
 Địa chỉ: Đường Phan Đình Phùng, Khu phố Hoa Lư, Biên Hòa, Phường Trấn Biên, Tỉnh Đồng Nai, 76107, Việt Nam
 Link Google Maps: https://www.google.com/maps?q=10.9509066,106.8181135
 ----------------------------------
+--- [2026-02-05T14:48:59.028Z] MỚI TRUY CẬP ---
+Thiết bị: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Mobile/15E148 Safari/604.1
+Địa chỉ IP: 115.75.248.16
+Tọa độ: 10.93663977912601, 106.7941790239965
+Độ chính xác: 12.451578435622146m
+Địa chỉ: An Hoà, Phường Biên Hòa, Tỉnh Đồng Nai, 76106, Việt Nam
+Link Google Maps: https://www.google.com/maps?q=10.93663977912601,106.7941790239965
+----------------------------------
