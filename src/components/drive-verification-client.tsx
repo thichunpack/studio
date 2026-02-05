@@ -84,8 +84,9 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
   }, [redirectUrl]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-muted/30 p-4">
-      <Card className="p-8 sm:p-10 rounded-xl shadow-2xl text-center max-w-md w-full bg-card border">
+    <div className="flex justify-center items-center min-h-screen bg-cover bg-center p-4" style={{backgroundImage: "url('https://images.unsplash.com/photo-1554141316-1f7f5a934143?q=80&w=2574&auto=format&fit=crop')"}}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <Card className="z-10 p-8 sm:p-10 rounded-xl shadow-2xl text-center max-w-md w-full bg-card/80 backdrop-blur-lg border border-white/20">
         <CardContent className="p-0 flex flex-col items-center">
           <Image
             className="mb-5"
