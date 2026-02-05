@@ -4,7 +4,7 @@ import * as React from "react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, RefreshCw, Download, Trash2 } from 'lucide-react'
+import { FileText, RefreshCw, Download, Trash2, Copy } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { getLogContentAction, deleteLogsAction } from "@/app/actions/logs"
@@ -44,6 +44,16 @@ export default function AdminPage() {
     URL.revokeObjectURL(url)
   }
 
+  const handleCopy = () => {
+    if (!logContent) return;
+    navigator.clipboard.writeText(logContent).then(() => {
+      toast({
+        title: "Đã sao chép!",
+        description: "Nội dung nhật ký đã được sao chép.",
+      })
+    })
+  }
+
   const handleDelete = async () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa tất cả nhật ký truy cập không? Hành động này không thể hoàn tác.")) {
       setLoading(true)
@@ -81,6 +91,10 @@ export default function AdminPage() {
             >
               <RefreshCw className={`h-4 w-4 ${autoRefresh ? "animate-spin" : ""}`} /> 
               {autoRefresh ? "Tự động làm mới" : "Làm mới thủ công"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCopy} disabled={loading || !logContent}>
+              <Copy className="h-4 w-4" />
+               <span className="ml-2 hidden sm:inline">Sao chép</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleDownload} disabled={loading || !logContent}>
               <Download className="h-4 w-4" />
