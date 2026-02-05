@@ -3,11 +3,11 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Users, Link as LinkIcon, Globe } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Users, Globe, MapPin, MapPinOff } from "lucide-react"
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 
 const logFile = path.join(process.cwd(), 'logs', 'tracking_logs.txt');
 
@@ -16,36 +16,50 @@ interface RecentLog {
   ip: string;
   device: string;
   address: string;
-  coordinates: string;
   accuracy: string;
   mapLink: string;
+  type: 'Vị trí' | 'Ảnh';
 }
 
-function parseValue(entry: string, label: string): string {
+function parseLogEntry(entry: string): RecentLog | null {
+  const timestampMatch = entry.match(/^(.*?)\] MỚI TRUY CẬP (.*?) ---/);
+  if (!timestampMatch) return null;
+
+  const type = timestampMatch[2].includes('(Ảnh)') ? 'Ảnh' : 'Vị trí';
+
+  const getValue = (label: string): string => {
     const match = entry.match(new RegExp(`${label}: (.*)`));
     return match ? match[1].trim() : 'N/A';
+  };
+  
+  return {
+    timestamp: new Date(timestampMatch[1]).toLocaleString('vi-VN'),
+    ip: getValue('Địa chỉ IP'),
+    device: getValue('Thiết bị'),
+    address: getValue('Địa chỉ'),
+    accuracy: getValue('Độ chính xác'),
+    mapLink: getValue('Link Google Maps'),
+    type: type,
+  };
 }
+
 
 async function getLogStats() {
   try {
     const content = await fs.readFile(logFile, 'utf-8');
     const entries = content.split('--- [').filter(e => e.trim() !== '');
 
-    const allIps = entries.map(e => parseValue(e, 'Địa chỉ IP')).filter(ip => ip !== 'N/A');
+    const allIps = entries.map(e => {
+        const match = e.match(/Địa chỉ IP: (.*)/);
+        return match ? match[1].trim() : 'N/A';
+    }).filter(ip => ip !== 'N/A' && ip.toLowerCase() !== 'unknown');
     const uniqueIps = new Set(allIps).size;
     
-    const recentLogs: RecentLog[] = entries.slice(-10).reverse().map(entry => {
-      const timestampMatch = entry.match(/^(.*?)\] MỚI TRUY CẬP/);
-      return { 
-        timestamp: timestampMatch ? new Date(timestampMatch[1]).toLocaleString('vi-VN') : 'N/A',
-        ip: parseValue(entry, 'Địa chỉ IP'),
-        device: parseValue(entry, 'Thiết bị'),
-        address: parseValue(entry, 'Địa chỉ'),
-        coordinates: parseValue(entry, 'Tọa độ'),
-        accuracy: parseValue(entry, 'Độ chính xác'),
-        mapLink: parseValue(entry, 'Link Google Maps'),
-      };
-    });
+    const recentLogs: RecentLog[] = entries
+      .slice(-12)
+      .reverse()
+      .map(parseLogEntry)
+      .filter((log): log is RecentLog => log !== null);
 
     return {
       totalVisits: entries.length,
@@ -102,55 +116,58 @@ export default async function DashboardPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Hoạt động Gần đây</CardTitle>
-                        <CardDescription>Hiển thị 10 lượt truy cập gần nhất.</CardDescription>
+                        <CardDescription>Hiển thị 12 lượt truy cập gần nhất.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[180px]">Thời gian</TableHead>
-                                    <TableHead>Địa chỉ IP</TableHead>
-                                    <TableHead>Địa chỉ / Vị trí</TableHead>
-                                    <TableHead className="hidden lg:table-cell">Thiết bị</TableHead>
-                                    <TableHead className="text-right">Bản đồ</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {statsData.recentLogs.length > 0 ? (
-                                    statsData.recentLogs.map((log, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell className="font-mono text-xs">{log.timestamp}</TableCell>
-                                            <TableCell className="font-mono text-xs">{log.ip}</TableCell>
-                                            <TableCell className="text-sm">
-                                                <div className="font-medium truncate max-w-xs">{log.address}</div>
-                                                {log.coordinates !== 'N/A' && (
-                                                    <div className="text-xs text-muted-foreground font-mono">
-                                                        {log.coordinates} (acc: {log.accuracy})
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="hidden lg:table-cell text-xs text-muted-foreground truncate max-w-sm">{log.device}</TableCell>
-                                            <TableCell className="text-right">
-                                              {log.mapLink !== 'N/A' && (
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={log.mapLink} target="_blank" rel="noopener noreferrer">
-                                                        <LinkIcon className="h-3 w-3 mr-1" />
-                                                        Xem
-                                                    </Link>
-                                                </Button>
-                                              )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                            Chưa có hoạt động nào được ghi lại.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                        {statsData.recentLogs.length > 0 ? (
+                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {statsData.recentLogs.map((log, index) => (
+                              <Card key={index} className="flex flex-col text-sm shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="pb-3">
+                                  <CardDescription className="flex justify-between items-center text-xs">
+                                    <span>{log.timestamp}</span>
+                                    {log.type === 'Ảnh' && <Badge variant="secondary">Ảnh</Badge>}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex-1 space-y-3">
+                                  <div className="space-y-1">
+                                      <p className="text-muted-foreground text-xs">Thiết bị</p>
+                                      <p className="font-medium truncate leading-tight">{log.device}</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                      <p className="text-muted-foreground text-xs">Địa chỉ</p>
+                                      <p className="font-medium leading-tight">{log.address}</p>
+                                  </div>
+                                  {log.ip !== 'N/A' && (
+                                     <div className="space-y-1">
+                                      <p className="text-muted-foreground text-xs">Địa chỉ IP</p>
+                                      <p className="font-mono text-xs">{log.ip}</p>
+                                    </div>
+                                  )}
+                                </CardContent>
+                                <CardFooter>
+                                  {log.mapLink !== 'N/A' ? (
+                                    <Button variant="outline" size="sm" asChild className="w-full">
+                                        <Link href={log.mapLink} target="_blank" rel="noopener noreferrer">
+                                            <MapPin className="h-3 w-3 mr-2" />
+                                            Xem trên Bản đồ
+                                        </Link>
+                                    </Button>
+                                  ) : (
+                                     <Button variant="outline" size="sm" className="w-full" disabled>
+                                        <MapPinOff className="h-3 w-3 mr-2" />
+                                        Vị trí không có sẵn
+                                    </Button>
+                                  )}
+                                </CardFooter>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-24 text-muted-foreground">
+                            Chưa có hoạt động nào được ghi lại.
+                          </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
