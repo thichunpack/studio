@@ -101,7 +101,7 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
             </div>
             <div className="aspect-[16/10] w-full rounded-md bg-background flex items-center justify-center overflow-hidden shadow-inner">
                 <Image
-                    src="https://picsum.photos/seed/document-preview/800/500"
+                    src={config.imageUrl}
                     alt="File preview"
                     width={800}
                     height={500}

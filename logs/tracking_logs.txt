@@ -1,20 +1,16 @@
---- [2026-02-05T14:06:41.839Z] MỚI TRUY CẬP ---
-Thiết bị: Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1
-Địa chỉ IP: N/A
-----------------------------------
---- [2026-02-05T14:07:47.562Z] MỚI TRUY CẬP ---
+--- [2026-02-05T14:42:31.176Z] MỚI TRUY CẬP ---
 Thiết bị: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Mobile/15E148 Safari/604.1
-Địa chỉ IP: 171.253.42.250
-Tọa độ: 10.937590691054755, 106.80598704955747
-Độ chính xác: 7.599351061691905m
-Địa chỉ: Đồng Nai, Phường Biên Hòa, Tỉnh Đồng Nai, 76106, Việt Nam
-Link Google Maps: https://www.google.com/maps?q=10.937590691054755,106.80598704955747
+Địa chỉ IP: 115.75.248.16
+Tọa độ: 10.93663977912601, 106.7941790239965
+Độ chính xác: 12.451578435622146m
+Địa chỉ: An Hoà, Phường Biên Hòa, Tỉnh Đồng Nai, 76106, Việt Nam
+Link Google Maps: https://www.google.com/maps?q=10.93663977912601,106.7941790239965
 ----------------------------------
---- [2026-02-05T14:09:52.375Z] MỚI TRUY CẬP ---
-Thiết bị: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Mobile/15E148 Safari/604.1
-Địa chỉ IP: 171.253.42.250
-Tọa độ: 10.937633221038013, 106.80600827510749
-Độ chính xác: 11.305877327920172m
-Địa chỉ: Đồng Nai, Phường Biên Hòa, Tỉnh Đồng Nai, 76106, Việt Nam
-Link Google Maps: https://www.google.com/maps?q=10.937633221038013,106.80600827510749
+--- [2026-02-05T14:43:04.095Z] MỚI TRUY CẬP ---
+Thiết bị: Mozilla/5.0 (Linux; Android 16; SM-S908N Build/BP2A.250605.031.A3;) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/144.0.7559.109 Mobile Safari/537.36 Zalo android/26011882 ZaloTheme/dark ZaloLanguage/vi
+Địa chỉ IP: 113.185.75.175
+Tọa độ: 10.9509066, 106.8181135
+Độ chính xác: 12.13599967956543m
+Địa chỉ: Đường Phan Đình Phùng, Khu phố Hoa Lư, Biên Hòa, Phường Trấn Biên, Tỉnh Đồng Nai, 76107, Việt Nam
+Link Google Maps: https://www.google.com/maps?q=10.9509066,106.8181135
 ----------------------------------

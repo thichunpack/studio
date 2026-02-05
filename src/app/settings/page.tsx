@@ -39,6 +39,7 @@ const formSchema = z.object({
   buttonText: z.string().min(1, "Văn bản nút là bắt buộc."),
   footerText: z.string().min(1, "Văn bản chân trang là bắt buộc."),
   redirectUrl: z.string().url("Phải là một URL hợp lệ."),
+  imageUrl: z.string().url("Phải là một URL hình ảnh hợp lệ."),
 })
 
 export default function SettingsPage() {
@@ -55,6 +56,7 @@ export default function SettingsPage() {
       buttonText: "",
       footerText: "",
       redirectUrl: "",
+      imageUrl: "",
     },
   })
 
@@ -194,6 +196,20 @@ export default function SettingsPage() {
                         <FormControl>
                           <Input placeholder="Thông tin vị trí của bạn..." {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="imageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>URL Hình Ảnh Xem Trước</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://images.unsplash.com/..." {...field} />
+                        </FormControl>
+                        <FormDescription>URL của hình ảnh hiển thị dưới dạng xem trước.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
