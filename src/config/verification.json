@@ -6,5 +6,7 @@
   "buttonText": "Xác minh để xem",
   "footerText": "Xác minh không phải robot",
   "redirectUrl": "https://www.google.com/",
-  "imageUrl": "https://thuvien.camau.gov.vn/Content/img/Load.gif"
+  "imageUrl": "https://thuvien.camau.gov.vn/Content/img/Load.gif",
+  "theme": "dark",
+  "customHtml": ""
 }
