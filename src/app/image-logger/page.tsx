@@ -56,8 +56,9 @@ export default function ImageLoggerPage() {
                   <Label htmlFor="image-url">URL Hình ảnh Theo dõi</Label>
                   <div className="flex gap-2">
                     <Input id="image-url" value={imageUrl} readOnly placeholder="Đang tạo liên kết..." />
-                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(imageUrl)} disabled={!imageUrl}>
-                      <Copy className="h-4 w-4" />
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(imageUrl)} disabled={!imageUrl}>
+                      <Copy />
+                      Sao chép
                     </Button>
                   </div>
                 </div>
@@ -65,8 +66,9 @@ export default function ImageLoggerPage() {
                   <Label htmlFor="image-tag">Thẻ HTML để Nhúng</Label>
                    <div className="flex gap-2">
                     <Input id="image-tag" value={imageTag} readOnly className="font-code text-xs" placeholder="Đang tạo liên kết..."/>
-                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(imageTag)} disabled={!imageUrl}>
-                      <Copy className="h-4 w-4" />
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(imageTag)} disabled={!imageUrl}>
+                      <Copy />
+                      Sao chép
                     </Button>
                   </div>
                 </div>
@@ -74,8 +76,9 @@ export default function ImageLoggerPage() {
                   <Label htmlFor="markdown-tag">Thẻ Markdown</Label>
                    <div className="flex gap-2">
                     <Input id="markdown-tag" value={markdownTag} readOnly className="font-code text-xs" placeholder="Đang tạo liên kết..."/>
-                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(markdownTag)} disabled={!imageUrl}>
-                      <Copy className="h-4 w-4" />
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(markdownTag)} disabled={!imageUrl}>
+                      <Copy />
+                      Sao chép
                     </Button>
                   </div>
                 </div>
