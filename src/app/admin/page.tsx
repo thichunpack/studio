@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { getLogContentAction, deleteLogsAction } from "@/app/actions/logs"
 import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 
 export default function AdminPage() {
   const [logContent, setLogContent] = React.useState("")
@@ -39,17 +40,6 @@ export default function AdminPage() {
     return () => clearInterval(interval)
   }, [fetchLogs, autoRefresh])
 
-  const handleDownload = () => {
-    const blob = new Blob([logContent], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'tracking_logs.txt'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
 
   const handleCopy = () => {
     if (!logContent) return;
@@ -103,9 +93,11 @@ export default function AdminPage() {
               <Copy className="h-4 w-4" />
                <span className="ml-2 hidden sm:inline">Sao chép</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload} disabled={isInitialLoading || !logContent}>
-              <Download className="h-4 w-4" />
-               <span className="ml-2 hidden sm:inline">Tải xuống</span>
+            <Button variant="outline" size="sm" asChild disabled={isInitialLoading || !logContent}>
+              <a href="/api/logs/download" download="tracking_logs.txt">
+                <Download className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">Tải xuống</span>
+              </a>
             </Button>
             <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting}>
               <Trash2 className="h-4 w-4" />

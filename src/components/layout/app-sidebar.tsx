@@ -8,7 +8,8 @@ import {
   Zap,
   FileKey2,
   Settings,
-  ImageIcon
+  ImageIcon,
+  Link as LinkIcon
 } from "lucide-react"
 import {
   Sidebar,
@@ -31,19 +32,14 @@ const mainNav = [
     icon: LayoutDashboard,
   },
   {
+    title: "Quản lý Link",
+    url: "/links",
+    icon: LinkIcon,
+  },
+  {
     title: "Nhật Ký Truy Cập",
     url: "/admin",
     icon: FileKey2,
-  },
-  {
-    title: "Trình Ghi Ảnh",
-    url: "/image-logger",
-    icon: ImageIcon,
-  },
-  {
-    title: "Cài Đặt",
-    url: "/settings",
-    icon: Settings,
   },
 ]
 
@@ -64,7 +60,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Phân Tích</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Công cụ</SidebarGroupLabel>
           <SidebarMenu>
             {mainNav.map((item) => (
               <SidebarMenuItem key={item.title}>

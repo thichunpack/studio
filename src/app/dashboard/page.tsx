@@ -4,7 +4,7 @@ import * as React from "react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Users, Globe, MapPin, MapPinOff, RefreshCw } from "lucide-react"
+import { Users, Globe, MapPin, MapPinOff, RefreshCw, Link as LinkIcon, BadgeHelp } from "lucide-react"
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [statsData, setStatsData] = React.useState<DashboardStats>({
       totalVisits: 0,
       uniqueIps: 0,
+      totalLinks: 0,
       recentLogs: []
   });
   const [isLoading, setIsLoading] = React.useState(true);
@@ -35,7 +36,19 @@ export default function DashboardPage() {
   const statsCards = [
       { title: "Tổng Lượt Truy Cập", value: statsData.totalVisits.toLocaleString(), icon: Users },
       { title: "IP Duy Nhất", value: statsData.uniqueIps.toLocaleString(), icon: Globe },
+      { title: "Tổng Links", value: statsData.totalLinks.toLocaleString(), icon: LinkIcon },
   ];
+
+  function getBadgeVariant(type: RecentLog['type']) {
+    switch (type) {
+      case 'Click Link':
+        return 'default';
+      case 'Ảnh':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -47,14 +60,15 @@ export default function DashboardPage() {
         </header>
 
         <main className="flex-1 p-6">
-            {isLoading ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Tổng Lượt Truy Cập</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
-                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">IP Duy Nhất</CardTitle><Globe className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
-                </div>
-            ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                    {statsCards.map((stat) => (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {isLoading ? (
+                    <>
+                        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Tổng Lượt Truy Cập</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
+                        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">IP Duy Nhất</CardTitle><Globe className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
+                        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Tổng Links</CardTitle><LinkIcon className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">...</div></CardContent></Card>
+                    </>
+                ) : (
+                    statsCards.map((stat) => (
                         <Card key={stat.title}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">
@@ -66,9 +80,9 @@ export default function DashboardPage() {
                             <div className="text-2xl font-bold">{stat.value}</div>
                         </CardContent>
                         </Card>
-                    ))}
-                </div>
-            )}
+                    ))
+                )}
+            </div>
             
             <div className="mt-6">
                 <Card>
@@ -89,7 +103,7 @@ export default function DashboardPage() {
                                 <CardHeader className="pb-3">
                                   <CardDescription className="flex justify-between items-center text-xs">
                                     <span>{log.timestamp}</span>
-                                    {log.type === 'Ảnh' && <Badge variant="secondary">Ảnh</Badge>}
+                                    <Badge variant={getBadgeVariant(log.type)}>{log.type}</Badge>
                                   </CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex-1 space-y-3">

