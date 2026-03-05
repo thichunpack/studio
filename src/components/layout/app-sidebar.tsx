@@ -7,8 +7,8 @@ import {
   LogOut,
   Zap,
   FileKey2,
-  Settings,
-  ImageIcon,
+  Settings as SettingsIcon,
+  Image as ImageIcon,
   Link as LinkIcon,
   Send
 } from "lucide-react"
@@ -53,7 +53,7 @@ const settingsNav = [
   {
     title: "Cấu hình Hệ thống",
     url: "/settings",
-    icon: Settings,
+    icon: SettingsIcon,
   },
 ]
 
