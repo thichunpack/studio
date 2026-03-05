@@ -54,6 +54,7 @@ export default function LinksPage() {
   const [links, setLinks] = React.useState<Link[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [origin, setOrigin] = React.useState("")
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -81,6 +82,8 @@ export default function LinksPage() {
 
   React.useEffect(() => {
     fetchLinks()
+    // Safe access to window.location.origin on the client
+    setOrigin(window.location.origin.replace('http://', '').replace('https://', ''))
   }, [fetchLinks])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -161,7 +164,6 @@ export default function LinksPage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[900px] bg-[#0d1117] border-slate-800 text-slate-300 p-0 overflow-hidden">
                 <div className="flex flex-col md:flex-row h-full">
-                    {/* Form Side */}
                     <div className="flex-1 p-6 border-r border-slate-800">
                         <DialogHeader className="mb-6">
                             <DialogTitle className="text-white italic uppercase">Thiết lập chiến dịch</DialogTitle>
@@ -215,7 +217,6 @@ export default function LinksPage() {
                         </Form>
                     </div>
 
-                    {/* Preview Side */}
                     <div className="w-full md:w-[350px] bg-black p-6 flex flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 to-transparent">
                         <div className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-6 flex items-center gap-2">
                             <Smartphone className="h-3 w-3 text-blue-500" /> TRÌNH MÔ PHỎNG (ZALO/FB)
@@ -232,7 +233,7 @@ export default function LinksPage() {
                             <div className="p-4 space-y-2">
                                 <div className="text-xs font-bold text-white uppercase truncate">{watchedValues.title || "Tiêu đề mồi..."}</div>
                                 <div className="text-[10px] text-slate-500 leading-relaxed line-clamp-2">{watchedValues.description || "Mô tả nội dung mồi của bạn tại đây để tăng tỷ lệ nhấp..."}</div>
-                                <div className="text-[9px] text-blue-500 font-mono truncate pt-2 border-t border-slate-800/50">{window.location.origin.replace('http://', '').replace('https://', '')}</div>
+                                <div className="text-[9px] text-blue-500 font-mono truncate pt-2 border-t border-slate-800/50">{origin}</div>
                             </div>
                         </div>
                         <div className="mt-6 flex items-center gap-4 text-slate-600">
