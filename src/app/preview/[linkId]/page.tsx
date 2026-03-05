@@ -1,14 +1,16 @@
+
 import { getLinkAction } from '@/app/actions/links';
 import { LinkVerificationClient } from './client';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 type Props = {
-  params: { linkId: string }
+  params: Promise<{ linkId: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const link = await getLinkAction(params.linkId);
+  const { linkId } = await params;
+  const link = await getLinkAction(linkId);
 
   if (!link) {
     return {
@@ -42,7 +44,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PreviewPage({ params }: Props) {
-  const link = await getLinkAction(params.linkId);
+  const { linkId } = await params;
+  const link = await getLinkAction(linkId);
 
   if (!link) {
     notFound();

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { promises as fs } from 'fs';
@@ -17,26 +18,34 @@ export interface Link {
   createdAt: string;
 }
 
-async function readLinksFile(): Promise<Link[]> {
+async function ensureDirectory() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
+  } catch (error) {
+    // Directory might already exist
+  }
+}
+
+async function readLinksFile(): Promise<Link[]> {
+  await ensureDirectory();
+  try {
     const fileContent = await fs.readFile(linksFilePath, 'utf-8');
     const data = JSON.parse(fileContent);
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT' || error instanceof SyntaxError) {
-      await fs.writeFile(linksFilePath, '[]', 'utf-8');
-      return [];
-    }
+    // If file doesn't exist or is invalid JSON, return empty array and create file
+    await fs.writeFile(linksFilePath, '[]', 'utf-8');
     return [];
   }
 }
 
 async function writeLinksFile(links: Link[]): Promise<boolean> {
+  await ensureDirectory();
   try {
     await fs.writeFile(linksFilePath, JSON.stringify(links, null, 2), 'utf-8');
     return true;
   } catch (error) {
+    console.error('Failed to write links file:', error);
     return false;
   }
 }

