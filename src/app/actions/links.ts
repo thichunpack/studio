@@ -21,7 +21,6 @@ async function readLinksFile(): Promise<Link[]> {
   try {
     await fs.mkdir(dataDir, { recursive: true });
     const fileContent = await fs.readFile(linksFilePath, 'utf-8');
-    // Ensure it's a valid array
     const data = JSON.parse(fileContent);
     return Array.isArray(data) ? data : [];
   } catch (error) {
@@ -29,7 +28,6 @@ async function readLinksFile(): Promise<Link[]> {
       await fs.writeFile(linksFilePath, '[]', 'utf-8');
       return [];
     }
-    console.error("Error reading links file:", error);
     return [];
   }
 }
@@ -39,14 +37,12 @@ async function writeLinksFile(links: Link[]): Promise<boolean> {
     await fs.writeFile(linksFilePath, JSON.stringify(links, null, 2), 'utf-8');
     return true;
   } catch (error) {
-    console.error("Error writing links file:", error);
     return false;
   }
 }
 
 export async function getLinksAction(): Promise<Link[]> {
   const links = await readLinksFile();
-  // Sort by creation date, newest first
   return links.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
@@ -55,13 +51,23 @@ export async function getLinkAction(id: string): Promise<Link | null> {
   return links.find(link => link.id === id) || null;
 }
 
-export async function createLinkAction(data: Omit<Link, 'id' | 'createdAt'>): Promise<{ success: boolean; link?: Link }> {
+export async function createLinkAction(data: Omit<Link, 'id' | 'createdAt'> & { id?: string }): Promise<{ success: boolean; link?: Link; message?: string }> {
   const links = await readLinksFile();
+  
+  // Check if custom ID already exists
+  if (data.id && links.find(l => l.id === data.id)) {
+    return { success: false, message: 'Mã ID này đã tồn tại.' };
+  }
+
   const newLink: Link = {
-    ...data,
-    id: uuidv4(),
+    title: data.title,
+    description: data.description,
+    imageUrl: data.imageUrl,
+    redirectUrl: data.redirectUrl,
+    id: data.id || uuidv4().substring(0, 8),
     createdAt: new Date().toISOString(),
   };
+  
   links.push(newLink);
   const success = await writeLinksFile(links);
   if (success) {
